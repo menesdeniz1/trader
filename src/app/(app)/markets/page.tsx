@@ -32,7 +32,7 @@ export default function MarketsPage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Piyasalar</h1>
         <p className="text-sm text-slate-500">
-          Gerçek piyasa verisiyle (Stooq) BIST ve ABD hisseleri ·{" "}
+          Gerçek piyasa verisiyle (Yahoo Finance) BIST ve ABD hisseleri ·{" "}
           {loading
             ? "yükleniyor..."
             : updatedAt

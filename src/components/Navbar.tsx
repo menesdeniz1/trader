@@ -48,7 +48,7 @@ export default function Navbar() {
           <div className="hidden text-right sm:block">
             <p className="text-xs text-slate-400">Nakit Bakiye</p>
             <p className="text-sm font-semibold text-slate-900">
-              {ready ? `₺${cashTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "—"}
+              {ready ? `₺${cashTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
             </p>
           </div>
           <span className="hidden text-sm text-slate-500 sm:block">{userName}</span>

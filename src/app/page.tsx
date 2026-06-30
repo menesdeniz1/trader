@@ -7,7 +7,7 @@ const FEATURES = [
   },
   {
     title: "Gerçek Piyasa Verisi",
-    desc: "Fiyatlar Stooq'un ücretsiz veri servisinden çekilir ve düzenli aralıklarla güncellenir.",
+    desc: "Fiyatlar Yahoo Finance'in ücretsiz veri servisinden çekilir ve düzenli aralıklarla güncellenir.",
   },
   {
     title: "Sahte Bakiye, Gerçek Fiyatlar",
@@ -84,7 +84,7 @@ export default function LandingPage() {
 
       <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400">
         Bu site eğitim/demo amaçlıdır, herhangi bir yatırım kuruluşuyla bağlantısı yoktur ve
-        yatırım tavsiyesi niteliği taşımaz. Fiyat verileri Stooq&apos;tan alınır, gecikmeli olabilir;
+        yatırım tavsiyesi niteliği taşımaz. Fiyat verileri Yahoo Finance&apos;ten alınır, gecikmeli olabilir;
         portföy, bakiye ve işlemler tamamen kurgusaldır.
       </footer>
     </div>

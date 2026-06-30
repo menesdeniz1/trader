@@ -100,7 +100,7 @@ export default function StockDetailPage() {
       </div>
 
       <p className="text-xs text-slate-400">
-        Fiyatlar Stooq&apos;un ücretsiz veri servisinden alınır, gecikmeli olabilir ve yatırım tavsiyesi
+        Fiyatlar Yahoo Finance&apos;ten alınır, gecikmeli olabilir ve yatırım tavsiyesi
         değildir. Alım-satım tamamen sahte (demo) bakiyeyle yapılır, gerçek para veya gerçek borsa
         emri söz konusu değildir.
       </p>

@@ -2,7 +2,8 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Holding, Transaction } from "@/lib/types";
-import { getStock, USD_TRY } from "@/lib/mockStocks";
+import { getStock } from "@/lib/mockStocks";
+import { useMarket } from "./MarketContext";
 
 const STORAGE_KEY = "demo-trader-portfolio";
 const STARTING_CASH = 100000;
@@ -28,6 +29,7 @@ function initialState(): PortfolioState {
 }
 
 export function PortfolioProvider({ children }: { children: ReactNode }) {
+  const { usdTry } = useMarket();
   const [state, setState] = useState<PortfolioState>(initialState());
   const [ready, setReady] = useState(false);
 
@@ -53,7 +55,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
   const toTRY = (symbol: string, amount: number) => {
     const stock = getStock(symbol);
-    return stock?.currency === "USD" ? amount * USD_TRY : amount;
+    return stock?.currency === "USD" ? amount * usdTry : amount;
   };
 
   const buy = (symbol: string, quantity: number, price: number) => {

@@ -6,8 +6,8 @@ export interface Stock {
   market: Market;
   currency: "TRY" | "USD";
   sector: string;
-  /** Ticker used to query the Stooq free quote API (e.g. "aapl.us", "thyao.tr"). */
-  stooqSymbol: string;
+  /** Ticker used to query the Yahoo Finance free quote API (e.g. "AAPL", "THYAO.IS"). */
+  yahooSymbol: string;
 }
 
 export interface Holding {

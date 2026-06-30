@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
-import { STOCKS } from "@/lib/mockStocks";
+import { STOCKS, FALLBACK_USD_TRY } from "@/lib/mockStocks";
 
 interface QuoteData {
   price: number;
@@ -14,6 +14,7 @@ interface MarketState {
   histories: Record<string, number[]>;
   prevCloses: Record<string, number>;
   unavailable: Record<string, boolean>;
+  usdTry: number;
   loading: boolean;
   error: string | null;
   updatedAt: string | null;
@@ -34,6 +35,7 @@ const initialState: MarketState = {
   histories: {},
   prevCloses: {},
   unavailable: {},
+  usdTry: FALLBACK_USD_TRY,
   loading: true,
   error: null,
   updatedAt: null,
@@ -47,7 +49,8 @@ export function MarketProvider({ children }: { children: ReactNode }) {
       const symbols = STOCKS.map((s) => s.symbol).join(",");
       const res = await fetch(`/api/quotes?symbols=${symbols}`, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json: { updatedAt: string; quotes: Record<string, QuoteData | null> } = await res.json();
+      const json: { updatedAt: string; quotes: Record<string, QuoteData | null>; usdTry: number } =
+        await res.json();
 
       const prices: Record<string, number> = {};
       const histories: Record<string, number[]> = {};
@@ -65,7 +68,16 @@ export function MarketProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      setState({ prices, histories, prevCloses, unavailable, loading: false, error: null, updatedAt: json.updatedAt });
+      setState({
+        prices,
+        histories,
+        prevCloses,
+        unavailable,
+        usdTry: json.usdTry ?? FALLBACK_USD_TRY,
+        loading: false,
+        error: null,
+        updatedAt: json.updatedAt,
+      });
     } catch {
       setState((prev) => ({
         ...prev,

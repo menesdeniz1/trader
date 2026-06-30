@@ -39,16 +39,16 @@ export default function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Toplam Varlık"
-          value={valuesReady ? `₺${totalValue.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "—"}
+          value={valuesReady ? `₺${totalValue.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
         />
-        <StatCard label="Nakit Bakiye" value={`₺${cashTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`} />
+        <StatCard label="Nakit Bakiye" value={`₺${cashTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
         <StatCard
           label="Portföy Değeri"
-          value={valuesReady ? `₺${holdingsValueTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "—"}
+          value={valuesReady ? `₺${holdingsValueTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
         />
         <StatCard
           label="Toplam Kar/Zarar"
-          value={valuesReady ? `${totalPnl >= 0 ? "+" : ""}₺${totalPnl.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "—"}
+          value={valuesReady ? `${totalPnl >= 0 ? "+" : ""}₺${totalPnl.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
           sub={valuesReady ? `${totalPnlPct >= 0 ? "+" : ""}${totalPnlPct.toFixed(2)}%` : undefined}
           subTone={totalPnl >= 0 ? "positive" : "negative"}
         />
@@ -109,7 +109,7 @@ export default function DashboardPage() {
                       ) : (
                         <>
                           <p className="font-semibold text-slate-900">
-                            ₺{valueTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                            ₺{valueTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                           <p className={`text-sm font-medium ${pnl >= 0 ? "text-green-600" : "text-red-600"}`}>
                             {pnl >= 0 ? "+" : ""}
