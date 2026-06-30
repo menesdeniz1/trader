@@ -6,9 +6,10 @@ import { useMarket } from "@/context/MarketContext";
 import Sparkline from "./Sparkline";
 
 export default function StockListItem({ stock }: { stock: Stock }) {
-  const { prices, histories, getChange } = useMarket();
+  const { prices, histories, getChange, isAvailable, loading } = useMarket();
+  const available = isAvailable(stock.symbol);
   const price = prices[stock.symbol];
-  const history = histories[stock.symbol];
+  const history = histories[stock.symbol] ?? [];
   const { pct } = getChange(stock.symbol);
   const isUp = pct >= 0;
   const currencySymbol = stock.currency === "USD" ? "$" : "₺";
@@ -33,19 +34,29 @@ export default function StockListItem({ stock }: { stock: Stock }) {
         </div>
       </div>
 
-      <div className="hidden sm:block">
-        <Sparkline data={history} positive={isUp} />
-      </div>
+      {available && (
+        <div className="hidden sm:block">
+          <Sparkline data={history} positive={isUp} />
+        </div>
+      )}
 
       <div className="text-right">
-        <p className="font-semibold text-slate-900">
-          {currencySymbol}
-          {price?.toFixed(2)}
-        </p>
-        <p className={`text-sm font-medium ${isUp ? "text-green-600" : "text-red-600"}`}>
-          {isUp ? "+" : ""}
-          {pct.toFixed(2)}%
-        </p>
+        {loading ? (
+          <p className="text-sm text-slate-400">Yükleniyor...</p>
+        ) : available ? (
+          <>
+            <p className="font-semibold text-slate-900">
+              {currencySymbol}
+              {price?.toFixed(2)}
+            </p>
+            <p className={`text-sm font-medium ${isUp ? "text-green-600" : "text-red-600"}`}>
+              {isUp ? "+" : ""}
+              {pct.toFixed(2)}%
+            </p>
+          </>
+        ) : (
+          <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-400">Veri yok</span>
+        )}
       </div>
     </Link>
   );

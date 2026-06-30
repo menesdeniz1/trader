@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { STOCKS } from "@/lib/mockStocks";
 import { Market } from "@/lib/types";
+import { useMarket } from "@/context/MarketContext";
 import StockListItem from "@/components/StockListItem";
 
 const TABS: { label: string; value: Market | "ALL" }[] = [
@@ -14,6 +15,7 @@ const TABS: { label: string; value: Market | "ALL" }[] = [
 export default function MarketsPage() {
   const [tab, setTab] = useState<Market | "ALL">("ALL");
   const [query, setQuery] = useState("");
+  const { error, updatedAt, loading } = useMarket();
 
   const filtered = useMemo(() => {
     return STOCKS.filter((stock) => {
@@ -29,8 +31,19 @@ export default function MarketsPage() {
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Piyasalar</h1>
-        <p className="text-sm text-slate-500">Demo fiyatlarla BIST ve ABD hisseleri</p>
+        <p className="text-sm text-slate-500">
+          Gerçek piyasa verisiyle (Stooq) BIST ve ABD hisseleri ·{" "}
+          {loading
+            ? "yükleniyor..."
+            : updatedAt
+              ? `son güncelleme ${new Date(updatedAt).toLocaleTimeString("tr-TR")}`
+              : "—"}
+        </p>
       </div>
+
+      {error && (
+        <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">{error}</div>
+      )}
 
       <input
         type="text"

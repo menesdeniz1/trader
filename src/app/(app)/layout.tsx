@@ -4,6 +4,7 @@ import { useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
+import BottomNav from "@/components/BottomNav";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const { isLoggedIn, ready } = useAuth();
@@ -26,7 +27,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-1 flex-col">
       <Navbar />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 pb-24 sm:pb-6">{children}</main>
+      <BottomNav />
     </div>
   );
 }

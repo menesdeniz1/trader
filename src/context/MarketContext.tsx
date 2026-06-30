@@ -1,63 +1,100 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { STOCKS } from "@/lib/mockStocks";
-import { generateHistory, nextTick } from "@/lib/marketSim";
 
-interface MarketData {
+interface QuoteData {
+  price: number;
+  prevClose: number;
+  history: number[];
+}
+
+interface MarketState {
   prices: Record<string, number>;
   histories: Record<string, number[]>;
   prevCloses: Record<string, number>;
+  unavailable: Record<string, boolean>;
+  loading: boolean;
+  error: string | null;
+  updatedAt: string | null;
 }
 
-interface MarketContextValue extends MarketData {
+interface MarketContextValue extends MarketState {
   getChange: (symbol: string) => { abs: number; pct: number };
+  isAvailable: (symbol: string) => boolean;
+  refresh: () => void;
 }
 
 const MarketContext = createContext<MarketContextValue | null>(null);
 
-function buildInitial(): MarketData {
-  const prices: Record<string, number> = {};
-  const histories: Record<string, number[]> = {};
-  const prevCloses: Record<string, number> = {};
-  for (const stock of STOCKS) {
-    const history = generateHistory(stock.symbol, stock.basePrice);
-    histories[stock.symbol] = history;
-    prices[stock.symbol] = history[history.length - 1];
-    prevCloses[stock.symbol] = history[0];
-  }
-  return { prices, histories, prevCloses };
-}
+const POLL_INTERVAL_MS = 60_000;
+
+const initialState: MarketState = {
+  prices: {},
+  histories: {},
+  prevCloses: {},
+  unavailable: {},
+  loading: true,
+  error: null,
+  updatedAt: null,
+};
 
 export function MarketProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<MarketData>(() => buildInitial());
+  const [state, setState] = useState<MarketState>(initialState);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setData((current) => {
-        const prices: Record<string, number> = { ...current.prices };
-        const histories: Record<string, number[]> = { ...current.histories };
-        for (const stock of STOCKS) {
-          const newPrice = nextTick(prices[stock.symbol]);
-          prices[stock.symbol] = newPrice;
-          histories[stock.symbol] = [...histories[stock.symbol].slice(-49), newPrice];
+  const load = useCallback(async () => {
+    try {
+      const symbols = STOCKS.map((s) => s.symbol).join(",");
+      const res = await fetch(`/api/quotes?symbols=${symbols}`, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json: { updatedAt: string; quotes: Record<string, QuoteData | null> } = await res.json();
+
+      const prices: Record<string, number> = {};
+      const histories: Record<string, number[]> = {};
+      const prevCloses: Record<string, number> = {};
+      const unavailable: Record<string, boolean> = {};
+
+      for (const stock of STOCKS) {
+        const quote = json.quotes[stock.symbol];
+        if (quote) {
+          prices[stock.symbol] = quote.price;
+          prevCloses[stock.symbol] = quote.prevClose;
+          histories[stock.symbol] = quote.history;
+        } else {
+          unavailable[stock.symbol] = true;
         }
-        return { prices, histories, prevCloses: current.prevCloses };
-      });
-    }, 2500);
-    return () => clearInterval(interval);
+      }
+
+      setState({ prices, histories, prevCloses, unavailable, loading: false, error: null, updatedAt: json.updatedAt });
+    } catch {
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: "Piyasa verisi şu anda alınamıyor. Bir süre sonra tekrar denenecek.",
+      }));
+    }
   }, []);
 
+  useEffect(() => {
+    // Initial fetch on mount, then poll; load() sets state asynchronously after the fetch resolves.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    load();
+    const interval = setInterval(load, POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [load]);
+
   const getChange = (symbol: string) => {
-    const price = data.prices[symbol] ?? 0;
-    const prevClose = data.prevCloses[symbol] ?? price;
+    const price = state.prices[symbol] ?? 0;
+    const prevClose = state.prevCloses[symbol] ?? price;
     const abs = price - prevClose;
     const pct = prevClose === 0 ? 0 : (abs / prevClose) * 100;
     return { abs, pct };
   };
 
+  const isAvailable = (symbol: string) => !state.unavailable[symbol] && state.prices[symbol] !== undefined;
+
   return (
-    <MarketContext.Provider value={{ ...data, getChange }}>
+    <MarketContext.Provider value={{ ...state, getChange, isAvailable, refresh: load }}>
       {children}
     </MarketContext.Provider>
   );

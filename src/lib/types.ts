@@ -5,8 +5,9 @@ export interface Stock {
   name: string;
   market: Market;
   currency: "TRY" | "USD";
-  basePrice: number;
   sector: string;
+  /** Ticker used to query the Stooq free quote API (e.g. "aapl.us", "thyao.tr"). */
+  stooqSymbol: string;
 }
 
 export interface Holding {

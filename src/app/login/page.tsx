@@ -25,10 +25,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-slate-50 px-4 py-12">
+    <div className="flex flex-1 items-center justify-center bg-gradient-to-b from-violet-50 via-white to-white px-4 py-12">
       <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <Link href="/" className="flex items-center gap-2 font-bold text-violet-700">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-700 text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-violet-800 text-white shadow-sm">
             D
           </span>
           Demo Trader

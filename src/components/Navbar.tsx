@@ -22,7 +22,7 @@ export default function Navbar() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="flex items-center gap-2 font-bold text-violet-700">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-700 text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-violet-800 text-white shadow-sm">
               D
             </span>
             Demo Trader
@@ -63,19 +63,6 @@ export default function Navbar() {
           </button>
         </div>
       </div>
-      <nav className="flex items-center gap-1 overflow-x-auto border-t border-slate-100 px-4 py-2 sm:hidden">
-        {LINKS.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${
-              pathname === link.href ? "bg-violet-100 text-violet-700" : "text-slate-600"
-            }`}
-          >
-            {link.label}
-          </Link>
-        ))}
-      </nav>
     </header>
   );
 }

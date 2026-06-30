@@ -11,7 +11,7 @@ import Sparkline from "@/components/Sparkline";
 export default function DashboardPage() {
   const { userName } = useAuth();
   const { cashTRY, holdings, ready, toTRY } = usePortfolio();
-  const { prices, histories, getChange } = useMarket();
+  const { prices, histories, getChange, isAvailable, loading: marketLoading } = useMarket();
 
   if (!ready) {
     return <p className="text-sm text-slate-400">Yükleniyor...</p>;
@@ -27,6 +27,7 @@ export default function DashboardPage() {
   const totalValue = cashTRY + holdingsValueTRY;
   const totalPnl = holdingsValueTRY - totalCostTRY;
   const totalPnlPct = totalCostTRY === 0 ? 0 : (totalPnl / totalCostTRY) * 100;
+  const valuesReady = !marketLoading;
 
   return (
     <div className="space-y-6">
@@ -36,16 +37,19 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Toplam Varlık" value={`₺${totalValue.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`} />
+        <StatCard
+          label="Toplam Varlık"
+          value={valuesReady ? `₺${totalValue.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "—"}
+        />
         <StatCard label="Nakit Bakiye" value={`₺${cashTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`} />
         <StatCard
           label="Portföy Değeri"
-          value={`₺${holdingsValueTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`}
+          value={valuesReady ? `₺${holdingsValueTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "—"}
         />
         <StatCard
           label="Toplam Kar/Zarar"
-          value={`${totalPnl >= 0 ? "+" : ""}₺${totalPnl.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`}
-          sub={`${totalPnlPct >= 0 ? "+" : ""}${totalPnlPct.toFixed(2)}%`}
+          value={valuesReady ? `${totalPnl >= 0 ? "+" : ""}₺${totalPnl.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "—"}
+          sub={valuesReady ? `${totalPnlPct >= 0 ? "+" : ""}${totalPnlPct.toFixed(2)}%` : undefined}
           subTone={totalPnl >= 0 ? "positive" : "negative"}
         />
       </div>
@@ -71,6 +75,7 @@ export default function DashboardPage() {
             {holdings.map((h) => {
               const stock = getStock(h.symbol);
               if (!stock) return null;
+              const available = isAvailable(h.symbol);
               const price = prices[h.symbol] ?? 0;
               const { pct } = getChange(h.symbol);
               const isUp = pct >= 0;
@@ -89,17 +94,29 @@ export default function DashboardPage() {
                       <p className="font-semibold text-slate-900">{stock.symbol}</p>
                       <p className="text-sm text-slate-500">{h.quantity} adet · ort. {h.avgCost.toFixed(2)}</p>
                     </div>
-                    <div className="hidden sm:block">
-                      <Sparkline data={histories[h.symbol] ?? []} positive={isUp} />
-                    </div>
+                    {available && (
+                      <div className="hidden sm:block">
+                        <Sparkline data={histories[h.symbol] ?? []} positive={isUp} />
+                      </div>
+                    )}
                     <div className="text-right">
-                      <p className="font-semibold text-slate-900">
-                        ₺{valueTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                      </p>
-                      <p className={`text-sm font-medium ${pnl >= 0 ? "text-green-600" : "text-red-600"}`}>
-                        {pnl >= 0 ? "+" : ""}
-                        {pnlPct.toFixed(2)}%
-                      </p>
+                      {!valuesReady ? (
+                        <p className="text-sm text-slate-400">Yükleniyor...</p>
+                      ) : !available ? (
+                        <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-400">
+                          Veri yok
+                        </span>
+                      ) : (
+                        <>
+                          <p className="font-semibold text-slate-900">
+                            ₺{valueTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                          </p>
+                          <p className={`text-sm font-medium ${pnl >= 0 ? "text-green-600" : "text-red-600"}`}>
+                            {pnl >= 0 ? "+" : ""}
+                            {pnlPct.toFixed(2)}%
+                          </p>
+                        </>
+                      )}
                     </div>
                   </Link>
                 </li>
