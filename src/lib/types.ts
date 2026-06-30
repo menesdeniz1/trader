@@ -12,6 +12,8 @@ export interface Stock {
 
 export interface Holding {
   symbol: string;
+  name: string;
+  currency: "TRY" | "USD";
   quantity: number;
   avgCost: number;
 }
@@ -21,6 +23,8 @@ export type TransactionSide = "BUY" | "SELL";
 export interface Transaction {
   id: string;
   symbol: string;
+  name: string;
+  currency: "TRY" | "USD";
   side: TransactionSide;
   quantity: number;
   price: number;

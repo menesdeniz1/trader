@@ -27,7 +27,13 @@ export async function GET(request: NextRequest) {
         .filter(Boolean)
     : STOCKS.map((s) => s.symbol);
 
-  const stocks = STOCKS.filter((s) => requested.includes(s.symbol));
+  // Sabit STOCKS listesinde olmayan semboller, kendi Yahoo sembolü kabul
+  // edilerek doğrudan geçirilir; böylece her geçerli BIST/ABD sembolü
+  // (yalnızca listede vitrin için olanlar değil) sorgulanabilir.
+  const stocks = requested.map((symbol) => {
+    const known = STOCKS.find((s) => s.symbol === symbol);
+    return known ? { symbol: known.symbol, yahooSymbol: known.yahooSymbol } : { symbol, yahooSymbol: symbol };
+  });
 
   const [settled, usdTryQuote] = await Promise.all([
     Promise.allSettled(

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePortfolio } from "@/context/PortfolioContext";
-import { getStock } from "@/lib/mockStocks";
+import { formatQty } from "@/lib/format";
 
 export default function TransactionsPage() {
   const { transactions, ready } = usePortfolio();
@@ -29,8 +29,7 @@ export default function TransactionsPage() {
         ) : (
           <ul className="divide-y divide-slate-100">
             {transactions.map((tx) => {
-              const stock = getStock(tx.symbol);
-              const currencySymbol = stock?.currency === "USD" ? "$" : "₺";
+              const currencySymbol = tx.currency === "USD" ? "$" : "₺";
               const isBuy = tx.side === "BUY";
               return (
                 <li key={tx.id} className="flex items-center justify-between gap-4 px-4 py-3">
@@ -47,7 +46,7 @@ export default function TransactionsPage() {
                         {tx.symbol}
                       </Link>
                       <p className="text-sm text-slate-500">
-                        {tx.quantity} adet × {currencySymbol}
+                        {formatQty(tx.quantity)} adet × {currencySymbol}
                         {tx.price.toFixed(2)}
                       </p>
                     </div>

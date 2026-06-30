@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { MarketProvider } from "@/context/MarketContext";
 import { PortfolioProvider } from "@/context/PortfolioContext";
+import { FavoritesProvider } from "@/context/FavoritesContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +34,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
         <AuthProvider>
           <MarketProvider>
-            <PortfolioProvider>{children}</PortfolioProvider>
+            <PortfolioProvider>
+              <FavoritesProvider>{children}</FavoritesProvider>
+            </PortfolioProvider>
           </MarketProvider>
         </AuthProvider>
       </body>

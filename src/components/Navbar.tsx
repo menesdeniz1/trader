@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { usePortfolio } from "@/context/PortfolioContext";
+import { useMarket } from "@/context/MarketContext";
 
 const LINKS = [
   { href: "/dashboard", label: "Portföy" },
@@ -15,7 +16,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { userName, logout } = useAuth();
-  const { cashTRY, ready } = usePortfolio();
+  const { cashTRY, cashUSD, ready } = usePortfolio();
+  const { usdTry } = useMarket();
 
   return (
     <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
@@ -48,7 +50,9 @@ export default function Navbar() {
           <div className="hidden text-right sm:block">
             <p className="text-xs text-slate-400">Nakit Bakiye</p>
             <p className="text-sm font-semibold text-slate-900">
-              {ready ? `₺${cashTRY.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+              {ready
+                ? `₺${(cashTRY + cashUSD * usdTry).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : "—"}
             </p>
           </div>
           <span className="hidden text-sm text-slate-500 sm:block">{userName}</span>

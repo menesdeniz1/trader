@@ -1,22 +1,77 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getStock } from "@/lib/mockStocks";
 import { useMarket } from "@/context/MarketContext";
 import { usePortfolio } from "@/context/PortfolioContext";
+import { useFavorites } from "@/context/FavoritesContext";
 import Sparkline from "@/components/Sparkline";
 import TradeModal from "@/components/TradeModal";
 import { TransactionSide } from "@/lib/types";
+import { buildDynamicStock } from "@/lib/dynamicStock";
+import { formatQty } from "@/lib/format";
+
+interface QuoteData {
+  price: number;
+  prevClose: number;
+  history: number[];
+  name: string;
+  currency: string;
+  exchange: string;
+}
 
 export default function StockDetailPage() {
   const params = useParams<{ symbol: string }>();
   const symbol = (params.symbol ?? "").toUpperCase();
-  const stock = getStock(symbol);
-  const { prices, histories, getChange, isAvailable, loading } = useMarket();
+  const curatedStock = getStock(symbol);
+
+  const market = useMarket();
   const { holdings } = usePortfolio();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [tradeSide, setTradeSide] = useState<TransactionSide | null>(null);
+
+  const [dynamicQuote, setDynamicQuote] = useState<QuoteData | null | undefined>(undefined);
+
+  useEffect(() => {
+    if (curatedStock) return;
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDynamicQuote(undefined);
+    fetch(`/api/quotes?symbols=${encodeURIComponent(symbol)}`, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json: { quotes: Record<string, QuoteData | null> }) => {
+        if (!cancelled) setDynamicQuote(json.quotes[symbol] ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setDynamicQuote(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [curatedStock, symbol]);
+
+  const stock = curatedStock ?? (dynamicQuote ? buildDynamicStock(symbol, dynamicQuote) : null);
+
+  // Statik listedeki hisseler için MarketContext'in zaten taşıdığı toplu veri
+  // kullanılır; listede olmayanlar için yukarıdaki tekil fetch'ten gelen veri.
+  const loading = curatedStock ? market.loading : dynamicQuote === undefined;
+  const available = curatedStock ? market.isAvailable(stock?.symbol ?? "") : !!dynamicQuote;
+  const price = curatedStock ? market.prices[stock?.symbol ?? ""] : dynamicQuote?.price;
+  const history = curatedStock ? market.histories[stock?.symbol ?? ""] ?? [] : dynamicQuote?.history ?? [];
+  const change = curatedStock
+    ? market.getChange(stock?.symbol ?? "")
+    : dynamicQuote && dynamicQuote.prevClose !== 0
+      ? {
+          abs: dynamicQuote.price - dynamicQuote.prevClose,
+          pct: ((dynamicQuote.price - dynamicQuote.prevClose) / dynamicQuote.prevClose) * 100,
+        }
+      : { abs: 0, pct: 0 };
+
+  if (!curatedStock && dynamicQuote === undefined) {
+    return <p className="py-16 text-center text-sm text-slate-400">Hisse aranıyor...</p>;
+  }
 
   if (!stock) {
     return (
@@ -29,10 +84,7 @@ export default function StockDetailPage() {
     );
   }
 
-  const available = isAvailable(stock.symbol);
-  const price = prices[stock.symbol];
-  const history = histories[stock.symbol] ?? [];
-  const { abs, pct } = getChange(stock.symbol);
+  const { abs, pct } = change;
   const isUp = pct >= 0;
   const currencySymbol = stock.currency === "USD" ? "$" : "₺";
   const holding = holdings.find((h) => h.symbol === stock.symbol);
@@ -42,12 +94,22 @@ export default function StockDetailPage() {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => toggleFavorite(stock.symbol)}
+              aria-label={isFavorite(stock.symbol) ? "Favorilerden çıkar" : "Favorilere ekle"}
+              className={`text-xl transition ${isFavorite(stock.symbol) ? "text-amber-400" : "text-slate-300 hover:text-amber-300"}`}
+            >
+              {isFavorite(stock.symbol) ? "★" : "☆"}
+            </button>
             <h1 className="text-2xl font-bold text-slate-900">{stock.symbol}</h1>
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
               {stock.market}
             </span>
           </div>
-          <p className="text-sm text-slate-500">{stock.name} · {stock.sector}</p>
+          <p className="text-sm text-slate-500">
+            {stock.name}
+            {stock.sector !== "—" && ` · ${stock.sector}`}
+          </p>
         </div>
         {available && <Sparkline data={history} width={140} height={48} positive={isUp} />}
       </div>
@@ -76,7 +138,7 @@ export default function StockDetailPage() {
 
         {holding && (
           <p className="mt-3 text-sm text-slate-500">
-            Elinizde {holding.quantity} adet · ortalama maliyet {currencySymbol}
+            Elinizde {formatQty(holding.quantity)} adet · ortalama maliyet {currencySymbol}
             {holding.avgCost.toFixed(2)}
           </p>
         )}
@@ -105,7 +167,7 @@ export default function StockDetailPage() {
         emri söz konusu değildir.
       </p>
 
-      {tradeSide && available && (
+      {tradeSide && available && price !== undefined && (
         <TradeModal stock={stock} side={tradeSide} price={price} onClose={() => setTradeSide(null)} />
       )}
     </div>
