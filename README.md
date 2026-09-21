@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Demo Trader
 
-## Getting Started
+A Turkish-language paper-trading prototype built with Next.js, React, TypeScript and Tailwind CSS. Explore stocks, maintain a watchlist and simulate purchases, sales and TRY/USD conversions. No real orders or money transfers are made.
 
-First, run the development server:
+## Run locally
 
-```bash
+Use Node.js 22 and npm:
+
+```sh
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 and enter a demo display name. Use fictional information. No account registration or API key is required.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```sh
+npm run lint
+npm run build
+npm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The build downloads Geist fonts from Google; an internet connection is required. Market requests also require connectivity.
 
-## Learn More
+## How it works
 
-To learn more about Next.js, take a look at the following resources:
+- React contexts manage the demo identity, portfolio, favorites and market state.
+- Browser localStorage persists the simulated portfolio and watchlist. The starting balance is fictional.
+- Next.js route handlers query Yahoo Finance's unofficial, keyless chart and search endpoints. Quote requests use concurrent fetching with per-result failure handling and a short in-memory cache.
+- Charts use daily closing data, not an exchange-grade live feed. Missing stock quotes are marked unavailable. Currency conversion can fall back to a hardcoded exchange rate when the provider is unavailable.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Important boundaries
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This is a local learning/demo project, not a brokerage, investment recommendation or production financial service. The login screen is a display-name preference, **not authentication**. Local data can be modified in browser tools and is not isolated by user identity; do not use it for sensitive information or real balances.
 
-## Deploy on Vercel
+The API routes have no production authentication, rate limiting or bounded cache eviction. Do not expose the app as a public service without additional controls. Availability, accuracy and permission to redistribute third-party market data must be evaluated separately. No exchange-data license is claimed.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Verification
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The September 2026 maintenance pass verified ESLint and a production build, including TypeScript compilation. There is not yet an automated trading-behavior or browser end-to-end test suite; passing a build does not validate financial correctness.
